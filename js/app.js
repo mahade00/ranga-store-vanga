@@ -11,14 +11,20 @@ const loadProducts = (url) => {
 
 loadProducts('https://fakestoreapi.com/products');
 
+const setInnerText = (id, value) => {
+   document.getElementById(id).innerText = Math.round(value);
+};
+
+
 // show all product in UI
 const showProducts = (products) => {
-   
-   setInnerText('total_products', products.length);
+   const productSlice = products.slice(0, 12);
+   const productSlicerLength = productSlice.length;
+   setInnerText('total_products', productSlicerLength);
 
    document.getElementById("all-products").innerHTML = "";
 
-   const allProducts = products.slice(0, 10).map((pd) => pd);
+   const allProducts = products.slice(0, 12).map((pd) => pd);
     for (const product of allProducts) {
         console.log(product);
       const image = product.image;
@@ -30,59 +36,23 @@ const showProducts = (products) => {
       </div>
       <h3>${product.title}</h3>
       <p>Category: ${product.category}</p>
-      <h2>Price: $ ${product.price}</h2>
+      <h2>Price: $<span id="product-price"> ${product.price}</span></h2>
 
       <button onclick="showProductDetails(${product.id})" id="details-btn"    data-bs-toggle="modal"
       data-bs-target="#exampleModal" class="btn btn-outline-secondary mb-2 rounded-1 mt-1">Details</button>
       
-      <button onclick="addToCart(${product.id},${product.price})" id="addToCart-btn" class="buy-now btn btn-success border-0 w-100 rounded-0 bg-main py-2">Add to cart</button>
+      <button onclick="addToCart(${product.price})" id="addToCart-btn" class="buy-now btn btn-success border-0 w-100 rounded-0 bg-main py-2">Add to cart</button>
       `;
       document.getElementById('all-products').appendChild(div);
    }
 };
 
-let count = 0;
 
-const addToCart = (id, price) => {
-   count = count + 1;
-   updatePrice('price', value);
-
-   updateTaxAndCharge();
-   document.getElementById('total-Products').innerText = count;
-};
-
-const showProductDetails = (product_id) => {
-   console.log(product_id);
-   fetch(`https://fakestoreapi.com/products/${product_id}`)
-      .then((res) => res.json())
-      .then((data) => showProductDetailsInModal(data));
-};
-
-const showProductDetailsInModal = (product_details) => {
-   console.log(product_details);
-   setInnerText('exampleModalLabel', product_details.title);
-   setInnerText('product_id', product_details.id);
-   setInnerText('modal_body', product_details.description);
-   setInnerText('rating', product_details.rating.rate);
-};
 
 const getInputValue = (id) => {
    const element = document.getElementById(id).innerText;
-   const converted = parseInt(element);
+   const converted = parseFloat(element);
    return converted;
-};
-
-// main price update function
-const updatePrice = (id, value) => {
-   const convertedOldPrice = getInputValue(id);
-   const convertPrice = parseInt(value);
-   const total = convertedOldPrice + convertPrice;
-   document.getElementById(id).innerText = Math.round(total);
-};
-
-// set innerText function
-const setInnerText = (id, value) => {
-   document.getElementById(id).innerText = Math.round(value);
 };
 
 // update delivery charge and total Tax
@@ -102,13 +72,50 @@ const updateTaxAndCharge = () => {
    }
 };
 
+// main price update function
+const updatePrice = (id, value) => {
+   const convertedOldPrice = getInputValue(id);
+    const convertPrice = parseFloat(value);
+   const total = convertedOldPrice + convertPrice;
+   document.getElementById(id).innerText = total.toFixed(2);
+};
+
+
 //grandTotal update function
 const updateTotal = () => {
    const grandTotal =
       getInputValue('price') +
       getInputValue('delivery-charge') +
       getInputValue('total-tax');
-   document.getElementById('total').innerText = grandTotal;
+   document.getElementById('total').innerText = grandTotal.toFixed(2);
+};
+
+let count = 0;
+const addToCart = (price) => {   
+    count = count + 1;    
+    document.getElementById('total-Products').innerText = count;
+   updatePrice('price', price);
+    updateTaxAndCharge();
+    updateTotal();
+};
+
+document.getElementById('addToCart-btn').addEventListener("click", function () {
+   addToCart();
+})
+
+const showProductDetails = (product_id) => {
+   // console.log(product_id);
+   fetch(`https://fakestoreapi.com/products/${product_id}`)
+      .then((res) => res.json())
+      .then((data) => showProductDetailsInModal(data));
+};
+
+const showProductDetailsInModal = (product_details) => {
+   console.log(product_details);
+   setInnerText('exampleModalLabel', product_details.title);
+   setInnerText('product_id', product_details.id);
+   setInnerText('modal_body', product_details.description);
+   setInnerText('rating', product_details.rating.rate);
 };
 
 // search by category
